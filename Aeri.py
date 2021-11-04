@@ -1,13 +1,9 @@
 # bot.py
 import os
 import discord
-from discord.utils import get
 from dotenv import load_dotenv
 import requests
-import json
 import random
-
-from requests.models import Response
 
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -24,7 +20,7 @@ def getHelp(user):
     command2 = "\n:wave: **Aeri hello** - *Use this when you want to say hi to me!*"
     command3 = "\n:wave: **Aeri bye** - *Use this when you want to say your good bye greeting to me. :(*"
     command4 = "\n:blush: **Aeri headpat** - *Use this when you feel down and need a headpat from Aeri!*"
-    command5 = "\n:clap: **Aeri cheer** - *se this when you want Aeri to cheer you up!*"
+    command5 = "\n:clap: **Aeri cheer** - *Use this when you want Aeri to cheer you up!*"
     command6 = "\n:sunny: **Aeri morning** - *use this when you want to wish good morning to Aeri!*"
     command7 = "\n:last_quarter_moon_with_face: **Aeri night**- u*se this when you want to wish Aeri good night!*"
 
@@ -113,21 +109,25 @@ async def on_message(message):
     if message.author == client.user:
         return
 
-    user = message.author.mention
-    emotion = message.content.lower().split("aeri")[1]
-    response, gif = getResponse(emotion,user)
-    #gif = getGif(emotion)   
 
+    # if the message mentions Aeri we proceed other wise abort -->
+    if "aeri" in message.content.lower():
+      user = message.author.mention
+      emotion = message.content.lower().split("aeri")[1]
+      response, gif = getResponse(emotion,user)
 
-    # [debugging] this will be printed on terminal not shown to the user
-    print("{} | {} | detected emotion: {}".format(message.author.display_name, message.content, emotion))                        
-        
-    # send response --> 
-    await message.channel.send('{} {}'.format(response,user))
+      # [debugging] this will be printed on terminal not shown to the user
+      print("{} | {} | detected emotion: {}".format(message.author.display_name, message.content, emotion))                        
+          
+      # send response --> 
+      await message.channel.send('{} {}'.format(response,user))
 
-    # help message would return a null gif that's why I'm checking it out
-    if gif:
-        await message.channel.send('{}'.format(gif))
+      # help message would return a null gif that's why I'm checking it out
+      if gif:
+          await message.channel.send('{}'.format(gif))
+
+    else:
+      pass
         
 
 

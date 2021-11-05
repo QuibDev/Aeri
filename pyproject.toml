@@ -8,6 +8,7 @@ authors = ["QuibDev <<>>"]
 python = "^3.8"
 discord = "^1.7.3"
 python-dotenv = "^0.19.1"
+config = "^0.5.1"
 
 [tool.poetry.dev-dependencies]
 

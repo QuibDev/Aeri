@@ -1,6 +1,5 @@
 # Aeri.py
 
-
 import discord
 import requests
 import random
@@ -34,11 +33,11 @@ def getHelp(user):
 
     specials = specials1+specials2+specials3
 
-    outro = "\n**Discord:** https://discord.gg/RvHyYD8Ew5 \n**Website:** https://quib.dev/Aeri \n**Github:** https://github.com/quibdev/aeri  \n**PS.** *You know my creator made me open source :D? If you want. You can add those emotions to me! Just fork me on github!*"
+    outro = "\n**Discord:** https://discord.gg/RvHyYD8Ew5 \n**Website:** https://quib.dev/Aeri \n**Github:** https://github.com/quibdev/aeri  \n\n**PS.** *You know my creator made me open source :D? If you want. You can add those emotions to me! Just fork me on github!*"
 
 
 
-    response = "{} *** ~ Greetings ~ *** {} ***~ Specials ~*** {} {}".format(intro,greetings,specials,outro)
+    response = intro+"\n\n*** ~ Greetings ~ ***"+greetings+"\n\n***~ Specials ~***"+specials+"\n\n"+outro
 
     return response
 

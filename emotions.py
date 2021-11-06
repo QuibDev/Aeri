@@ -9,24 +9,26 @@ help = "\n:face_with_spiral_eyes: **Aeri help** - *this brings up my command hel
 
 intro = intro+purpose+use+help
 
-greetings1 = "\n:wave: **Aeri hello** - *Use this when you want to say hi to me!*"
-greetings2 = "\n:wave: **Aeri bye** - *Use this when you want to say your good bye greeting to me. :(*"    
-greetings3 = "\n:sunny: **Aeri morning** - *use this when you want to wish good morning to Aeri!*"    
+greetings1 = "\n:wave: **Aeri Hello** - *Use this when you want to say hi to me!*"
+greetings2 = "\n:wave: **Aeri Bye** - *Use this when you want to say your good bye greeting to me. :(*"    
+greetings3 = "\n:sunny: **Aeri Morning** - *use this when you want to wish good morning to Aeri!*"    
 greetings4 = "\n:last_quarter_moon_with_face: **Aeri night**- u*se this when you want to wish Aeri good night!*"
 
 greetings = greetings1+greetings2+greetings3+greetings4
 
 
 specials1 = "\n:blush: **Aeri headpat** - *Use this when you feel down and need a headpat from Aeri!*"
-specials2 = "\n:clap: **Aeri cheer** - *Use this when you want Aeri to cheer you up!*"
-specials3 = "\n:birthday: **Aeri wish [@user] happy birthday!** - *Use this when you want Aeri to wish a person happy birthday!*"
+specials2 = "\n:thought_balloon: **Aeri Thoughts** - Use this to ask aeri what she's upto!"
+specials3 = "\n:partying_face: **Aeri Congratulate** - Use this when you want aeri to congratulate yourself or someone in the server!"
+specials4 = "\n:clap: **Aeri cheer** - *Use this when you want Aeri to cheer you up!*"
+specials5 = "\n:birthday: **Aeri wish [@user] happy birthday!** - *Use this when you want Aeri to wish a person happy birthday!*"
 
-specials = specials1+specials2+specials3
+specials = specials1+specials2+specials3+specials4+specials5
 
 outro = "\n**Discord:** https://discord.gg/RvHyYD8Ew5 \n**Website:** https://quib.dev/Aeri \n**Github:** https://github.com/quibdev/aeri  \n\n**PS.** *You know my creator made me open source :D? If you want. You can add those emotions to me! Just fork me on github!*"
 
 
-helpResponse = intro+"\n\n*** ~ Greetings ~ ***"+greetings+"\n\n***~ Specials ~***"+specials+"\n\n"+outro
+helpResponse = intro+"\n\n** ~ Greetings ~ **"+greetings+"\n\n**~ Specials ~**"+specials+"\n\n"+outro
 
 
 ### EMOTION RESPONSE DICT #####

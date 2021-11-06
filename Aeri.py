@@ -15,8 +15,8 @@ async def on_ready():
 
 
     await client.change_presence(
-        status=discord.Status.dnd,
-        activity=discord.Game('Type "Hey Aeri"')
+        status=discord.Status.online,
+        activity=discord.Game('Type "Aeri help me!" to chat!')
         )
 
     # [debug] Print out the server joined and server members in console

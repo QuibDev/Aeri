@@ -16,11 +16,33 @@ function recommendSeries(series) {
   return malScraper
     .getRecommendationsList(series)
     .then((data) => {
-      console.log(data[0]);
       return data[0];
     })
     .catch((err) => console.log(err));
 }
+
+function getWatchList(user, limit = 10, type = "anime") {
+  //"Hey aeri, what shows are on the watchlisconst malScraper = require('mal-scraper')
+  const malScraper = require("mal-scraper");
+
+  const username = user;
+  const after = 0;
+
+  // Get you an object containing all the entries with status, score... from this user's watch list
+  return malScraper
+    .getWatchListFromUser(username, after, type)
+    .then((data) => {
+      const slicedData = data.slice(0, limit);
+      //console.log(slicedData[0].score);
+      return slicedData;
+    })
+    .catch((err) => console.log(err));
+}
+
+getWatchList("OptimizedSoda");
+//score
+//animeTitle
+//genres
 
 function TenorGifSearch(emotion) {
   var emotion = "anime" + emotion;
@@ -111,4 +133,5 @@ module.exports = {
   getEmotion,
   searchSeries,
   recommendSeries,
+  getWatchList,
 };

@@ -110,11 +110,11 @@ const onMessage = async () => {
                 "finished airing"
               ) {
                 message.reply(
-                  `I found the ${series.type} ${series.name} on My Anime List! It's rated ${series.payload.score} and originally aired between ${series.payload.aired}`
+                  `I found the ${series.type} ${series.name} on My Anime List! It's rated **${series.payload.score} / 10** and originally aired between ${series.payload.aired}`
                 );
               } else {
                 message.reply(
-                  `I found the ${series.type} ${series.name} on My Anime List! It's rated ${series.payload.score} and is currently airing this season!`
+                  `I found the ${series.type} ${series.name} on My Anime List! It's rated **${series.payload.score} / 10** and is currently airing this season!`
                 );
               }
               message.channel.send("Here check it out!" + " " + user);
@@ -169,10 +169,6 @@ const onMessage = async () => {
           );
         }
       } else {
-        console.log(
-          `Message from ${message.author.username}: ${messageContent}`
-        ); // DEBUG [LOG THE COMMAND MESSAGE]
-
         var emotion = getEmotion(message);
         var response = getResponse(emotion, user);
 

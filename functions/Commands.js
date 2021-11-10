@@ -7,10 +7,28 @@ function searchSeries(series) {
   return malScraper
     .getResultsFromSearch(series)
     .then((data) => {
+      //getSeriesLength(data[0].name, data[0].id).then((promise) => {
+      //  data[0].length = promise;
+      //  return data[0];
+      //});
       return data[0];
     })
     .catch((err) => console.log(err));
 }
+
+function getSeriesLength(series, id) {
+  return malScraper
+    .getEpisodesList({
+      name: series,
+      id: id,
+    })
+    .then((data) => {
+      return data.length;
+    })
+    .catch((err) => console.log(err));
+}
+
+//searchSeries("stein;s gate");
 
 function recommendSeries(series) {
   return malScraper
@@ -39,7 +57,7 @@ function getWatchList(user, limit = 10, type = "anime") {
     .catch((err) => console.log(err));
 }
 
-getWatchList("OptimizedSoda");
+//getWatchList("OptimizedSoda");
 //score
 //animeTitle
 //genres
@@ -56,9 +74,9 @@ function TenorGifSearch(emotion) {
     DateFormat: "D/MM/YYYY - H:mm:ss A", // Change this accordingly
   });
 
-  var randomInt = Math.floor(Math.random() * 50);
+  var randomInt = Math.floor(Math.random() * 25);
 
-  return Tenor.Search.Query(emotion, "50").then((data) => {
+  return Tenor.Search.Query(emotion, "25").then((data) => {
     console.log(data[randomInt].url);
     return data[randomInt].url;
   });
@@ -97,32 +115,46 @@ function getEmotion(message) {
   for (let i = 0; i < Object.keys(Data.keyWordList).length; i++) {
     if (message.split(" ").includes(Data.keyWordList[i])) {
       detectedkeyWordList.push(Data.keyWordList[i]);
-      console.log("\nkeyword: ", Data.keyWordList[i]);
     }
   }
 
   console.log("\nmessage: ", message);
-  console.log("\ndetectedKeyWords: ", detectedkeyWordList);
+  console.log(
+    "\ndetectedKeyWords: ",
+    detectedkeyWordList,
+    detectedkeyWordList.length
+  );
 
-  if (detectedkeyWordList) {
-    emotion = detectedkeyWordList[0];
-  } else {
+  if (detectedkeyWordList === []) {
     console.log("\n\nNO KEYWORD DETECTED IN THE SENTENCE:");
     console.log("\nMessage: ", message);
     emotion = "sorry";
     return emotion;
   }
 
+  emotionMappedList = [];
+
   for (const [emotionKey, emotionValue] of Object.entries(
     Data.emotionMapDict
   )) {
-    if (emotionValue.includes(emotion)) {
-      emotion = emotionKey;
+    for (let i = 0; i < detectedkeyWordList.length; i++) {
+      if (emotionValue.includes(detectedkeyWordList[i])) {
+        emotionMappedList.push(emotionKey);
+      }
+    }
+  }
+
+  for (let i = 0; i < emotionMappedList.length; i++) {
+    for (let j = 0; j < Data.keyWordPriorityList.length; j++) {
+      if (Data.keyWordPriorityList[j] == emotionMappedList[i]) {
+        emotion = Data.keyWordPriorityList[j];
+      }
+      if (emotionMappedList[i] == undefined) break;
     }
   }
 
   console.log(
-    `\n\nMessage: ${message} \nDetectedEmotionKeyWordList:  \nemotion: ${emotion}`
+    `\n\nMessage: ${message} \nDetectedKeyWordList: ${detectedkeyWordList} \nemotionMappedDict: ${emotionMappedList} \nemotion: ${emotion}`
   );
   return emotion;
 }

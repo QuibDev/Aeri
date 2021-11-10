@@ -192,7 +192,7 @@ var congratulateKeyWordList = [
   "congratulations",
 ];
 var headpatKeyWordList = ["headpat", "head", "pat"];
-var birthdayKeyWordList = ["birthday"];
+var birthdayKeyWordList = ["birthday", "bday", "specialday"];
 var sorryKeyWordList = ["sorry", "apology", "apologize"];
 var helpKeyWordList = [
   "help",
@@ -201,6 +201,25 @@ var helpKeyWordList = [
   "chat",
   "let's chat",
   "talk",
+];
+
+//###### PRIORITY KEYWORD LIST ########
+
+var keyWordPriorityList = [
+  "birthday",
+  "help",
+  "sorry",
+  "thanks",
+  "headpat",
+  "mood",
+  "morning",
+  "night",
+  "congratulate",
+  "cheer",
+  "sad",
+  "happy",
+  "bye",
+  "hello",
 ];
 
 //###### KEYWORD LIST ######
@@ -244,4 +263,5 @@ module.exports = {
   emotionResponseDict,
   keyWordList,
   emotionMapDict,
+  keyWordPriorityList,
 };

@@ -7,10 +7,6 @@ function searchSeries(series) {
   return malScraper
     .getResultsFromSearch(series)
     .then((data) => {
-      //getSeriesLength(data[0].name, data[0].id).then((promise) => {
-      //  data[0].length = promise;
-      //  return data[0];
-      //});
       return data[0];
     })
     .catch((err) => console.log(err));
@@ -27,6 +23,27 @@ function getSeriesLength(series, id) {
     })
     .catch((err) => console.log(err));
 }
+
+function getTmdbResults(series) {
+  const { TMDB_API_KEY } = require("../config.json");
+  const mdb = require("moviedb")(TMDB_API_KEY);
+
+  mdb.searchMovie({ query: series }, (err, res) => {
+    console.log(res.results[0]);
+  });
+}
+
+function getMovieDetails(Id) {
+  const { TMDB_API_KEY } = require("../config.json");
+  const mdb = require("moviedb")(TMDB_API_KEY);
+
+  mdb.movieInfo({ id: Id }, (err, res) => {
+    console.log(res);
+  });
+}
+
+//getTmdbResults("avengers");
+//getMovieDetails(126889);
 
 //searchSeries("stein;s gate");
 
@@ -76,10 +93,11 @@ function TenorGifSearch(emotion) {
 
   var randomInt = Math.floor(Math.random() * 25);
 
-  return Tenor.Search.Query(emotion, "25").then((data) => {
-    console.log(data[randomInt].url);
-    return data[randomInt].url;
-  });
+  return Tenor.Search.Query(emotion, "15")
+    .then((data) => {
+      return data[randomInt].url;
+    })
+    .catch((err) => console.log(err));
 }
 
 function getResponse(emotion) {
@@ -146,6 +164,7 @@ function getEmotion(message) {
 
   for (let i = 0; i < emotionMappedList.length; i++) {
     for (let j = 0; j < Data.keyWordPriorityList.length; j++) {
+      //console.log("emotionmappeddict:", emotionMappedList[i]);
       if (Data.keyWordPriorityList[j] == emotionMappedList[i]) {
         emotion = Data.keyWordPriorityList[j];
       }

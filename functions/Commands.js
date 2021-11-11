@@ -42,11 +42,6 @@ function getMovieDetails(Id) {
   });
 }
 
-//getTmdbResults("avengers");
-//getMovieDetails(126889);
-
-//searchSeries("stein;s gate");
-
 function recommendSeries(series) {
   return malScraper
     .getRecommendationsList(series)
@@ -74,13 +69,9 @@ function getWatchList(user, limit = 10, type = "anime") {
     .catch((err) => console.log(err));
 }
 
-//getWatchList("OptimizedSoda");
-//score
-//animeTitle
-//genres
+function TenorGifSearch(emotion, custom = false) {
+  if (!custom) var emotion = "anime" + emotion;
 
-function TenorGifSearch(emotion) {
-  var emotion = "anime" + emotion;
   const { TENOR_API_KEY } = require("../config.json");
 
   const Tenor = require("tenorjs").client({
@@ -91,7 +82,7 @@ function TenorGifSearch(emotion) {
     DateFormat: "D/MM/YYYY - H:mm:ss A", // Change this accordingly
   });
 
-  var randomInt = Math.floor(Math.random() * 25);
+  var randomInt = Math.floor(Math.random() * 15);
 
   return Tenor.Search.Query(emotion, "15")
     .then((data) => {

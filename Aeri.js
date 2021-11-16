@@ -1,7 +1,7 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require("discord.js");
 const { token } = require("./config.json");
-
+//.
 const {
   TenorGifSearch,
   getResponse,
@@ -41,8 +41,6 @@ const onMessage = async () => {
       .replaceAll("#", "");
 
     if (messageContent.split(" ").includes("aeri")) {
-      // search for trigger word "aeri"
-
       if (messageContent.match("(<@.*?>)")) {
         var user = messageContent.match("(<@.*?>)")[0];
 
@@ -224,23 +222,24 @@ const onMessage = async () => {
                 message.channel.send(`This one's for you! ${user}`);
                 message.reply(`${gif}`);
               });
+            } else {
+              message.channel.sendTyping();
+              await new Promise((r) => setTimeout(r, 1000));
+              message.reply(":]");
+              message.channel.sendTyping();
+              await new Promise((r) => setTimeout(r, 1000));
+              message.reply("Wait send gifs about what? :<");
+              await new Promise((r) => setTimeout(r, 500));
+              message.channel.send(`*Aeri is dumb`);
+              await new Promise((r) => setTimeout(r, 500));
+              message.reply(
+                `Aeri can't detect any emotions in this message :<<<`
+              );
+              await new Promise((r) => setTimeout(r, 100));
+              message.channel.send(
+                `Please try again! Do you know you can ask aeri to search custom gifs by including their names inside \"quotations\" :D?`
+              );
             }
-            message.channel.sendTyping();
-            await new Promise((r) => setTimeout(r, 1000));
-            message.reply(":]");
-            message.channel.sendTyping();
-            await new Promise((r) => setTimeout(r, 1000));
-            message.reply("Wait send gifs about what? :<");
-            await new Promise((r) => setTimeout(r, 500));
-            message.channel.send(`*Aeri is dumb`);
-            await new Promise((r) => setTimeout(r, 500));
-            message.reply(
-              `Aeri can't detect any emotions in this message :<<<`
-            );
-            await new Promise((r) => setTimeout(r, 100));
-            message.channel.send(
-              `Please try again! Do you know you can ask aeri to search custom gifs by including their names inside \"quotations\" :D?`
-            );
           }
         }
       }

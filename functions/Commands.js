@@ -3,6 +3,28 @@
 const Data = require("../data/emotions");
 const malScraper = require("mal-scraper");
 
+var context = {
+  connection: null,
+  playlist: [],
+  user: null,
+  message: null,
+  messageContent: null,
+};
+
+async function initCommandContext(message) {
+  context.user = message.author;
+  context.message = message;
+
+  context.messageContent = message.content // clean the message before analysing
+    .toLowerCase()
+    .replaceAll("!", "")
+    .replaceAll("?", "")
+    .replaceAll("*", "")
+    .replaceAll("#", "");
+
+  return;
+}
+
 function searchSeries(series) {
   return malScraper
     .getResultsFromSearch(series)
@@ -101,7 +123,9 @@ function getResponse(emotion) {
   }
 
   const responseArray = Data.emotionResponseDict[emotion];
-  response = responseArray[Math.floor(randomFloat * responseArray.length)];
+  if (responseArray) {
+    response = responseArray[Math.floor(randomFloat * responseArray.length)];
+  }
 
   //console.log("getResponse: ", response);
   return response;
@@ -176,4 +200,5 @@ module.exports = {
   searchSeries,
   recommendSeries,
   getWatchList,
+  initCommandContext,
 };

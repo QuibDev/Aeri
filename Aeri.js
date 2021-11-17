@@ -1,7 +1,20 @@
 // Require the necessary discord.js classes
 const { Client, Intents } = require("discord.js");
 const { token } = require("./config.json");
-//.
+const { musicKeywords } = require("./data/musicKeyword");
+
+const {
+  initContext,
+  helpCommand,
+  queueCommand,
+  playCommand,
+  playlistCommand,
+  pauseCommand,
+  skipCommand,
+  resumeCommand,
+  leaveCommand,
+} = require("./functions/MusicCommands");
+
 const {
   TenorGifSearch,
   getResponse,
@@ -9,7 +22,9 @@ const {
   searchSeries,
   recommendSeries,
   getWatchList,
+  initCommandContext,
 } = require("./functions/Commands");
+
 const Data = require("./data/emotions");
 
 // Create a new client instance
@@ -20,6 +35,7 @@ const client = new Client({
     Intents.FLAGS.DIRECT_MESSAGES,
     Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
     Intents.FLAGS.DIRECT_MESSAGE_TYPING,
+    Intents.FLAGS.GUILD_VOICE_STATES,
   ],
 });
 
@@ -48,6 +64,18 @@ const onMessage = async () => {
       } else {
         var user = "<@" + message.author.id + ">";
       }
+
+      var musicCommand = null;
+
+      musicKeywords.some((v) => {
+        if (messageContent.includes(v)) {
+          musicCommand = v;
+        }
+      });
+
+      console.log("command: ", musicCommand);
+
+      // aeri music commands
 
       if (messageContent.split(" ").includes("watchlist")) {
         if (messageContent.match(/"(.*?)"/g)) {
@@ -171,74 +199,147 @@ const onMessage = async () => {
             `Actually, ${user} you need to include the series name under " " for me to look it up!`
           );
         }
+      } else if (musicCommand) {
+        initContext(message);
+
+        switch (musicCommand) {
+          case "play":
+            console.log("\ntriggered play music\n");
+            playCommand();
+            break;
+
+          case "que":
+            console.log("\ntriggered queue music\n");
+            queueCommand();
+            break;
+
+          case "musichelp":
+            console.log("\ntriggered help music\n");
+            helpCommand();
+            break;
+
+          case "pause":
+            console.log("\ntriggered pause music\n");
+            pauseCommand();
+            break;
+
+          case "resume":
+            console.log("\ntriggered resume music\n");
+            resumeCommand();
+            break;
+
+          case "skip":
+            console.log("\ntriggered skip music\n");
+            skipCommand();
+            break;
+
+          case "playlist":
+            console.log("\ntriggered playlist music\n");
+            playlistCommand();
+            break;
+
+          case "leave":
+            console.log("\ntriggered leave music\n");
+            leaveCommand();
+            break;
+
+          default:
+            break;
+        }
       } else {
         var emotion = getEmotion(message);
+
+        switch (emotion) {
+          case "help":
+            Data.helpCommandResponse(message);
+            break;
+
+          case "greeting":
+            Data.greetingHelpResponse(message);
+            break;
+
+          case "special":
+            Data.specialHelpResponse(message);
+            break;
+
+          case "myanimelist":
+            Data.malHelpResponse(message);
+            break;
+
+          case "music":
+            Data.musicHelpResponse(message);
+            break;
+        }
+
         var response = getResponse(emotion, user);
 
-        message.channel.sendTyping();
-        await new Promise((r) => setTimeout(r, 1000));
+        if (response) {
+          message.channel.sendTyping();
+          await new Promise((r) => setTimeout(r, 1000));
 
-        await message.reply(`${response} ${user}`);
+          await message.reply(`${response} ${user}`);
 
-        if (messageContent.split(" ").includes("gif")) {
-          // searching for custom gifs
-          if (messageContent.match(/"(.*?)"/g)) {
-            query = messageContent
-              .match(/"(.*?)"/g)
-              .toString()
-              .replaceAll('"', "");
+          if (messageContent.split(" ").includes("gif")) {
+            // searching for custom gifs
 
-            if (query) {
-              console.log("searching custom gif query: ", query);
-              await TenorGifSearch(query, (custom = true))
-                .then((gif) => {
-                  message.channel.sendTyping();
+            if (messageContent.match(/"(.*?)"/g)) {
+              query = messageContent
+                .match(/"(.*?)"/g)
+                .toString()
+                .replaceAll('"', "");
+
+              if (query) {
+                console.log("searching custom gif query: ", query);
+                await TenorGifSearch(query, (custom = true))
+                  .then((gif) => {
+                    message.channel.sendTyping();
+                    message.channel.send(`This one's for you! ${user}`);
+                    message.reply(`${gif}`);
+                  })
+                  .catch((error) => {
+                    message.channel.sendTyping();
+                    message.reply(":]");
+                    message.reply("I'm sorry I can't find this gif on Tenor!");
+                    message.channel.send(
+                      `Maybe try changing the spelling a bit! And remember to add them under double quotations (" ")! Aeri can't find the gif otherwise! ${user}`
+                    );
+                  });
+              } else {
+                message.channel.sendTyping();
+                await new Promise((r) => setTimeout(r, 1000));
+                message.reply(":]");
+                message.reply(
+                  'You know you have to actually include something inside those " " I can\'t search empty gifs!!'
+                );
+                message.channel.send(`*...not yet anyways*`);
+              }
+            }
+
+            // searching for gifs based on message
+            else {
+              if (emotion != "gif") {
+                await TenorGifSearch(emotion).then((gif) => {
                   message.channel.send(`This one's for you! ${user}`);
                   message.reply(`${gif}`);
-                })
-                .catch((error) => {
-                  message.channel.sendTyping();
-                  message.reply(":]");
-                  message.reply("I'm sorry I can't find this gif on Tenor!");
-                  message.channel.send(
-                    `Maybe try changing the spelling a bit! And remember to add them under double quotations (" ")! Aeri can't find the gif otherwise! ${user}`
-                  );
                 });
-            } else {
-              message.channel.sendTyping();
-              await new Promise((r) => setTimeout(r, 1000));
-              message.reply(":]");
-              message.reply(
-                'You know you have to actually include something inside those " " I can\'t search empty gifs!!'
-              );
-              message.channel.send(`*...not yet anyways*`);
-            }
-          }
-
-          // searching for gifs based on message
-          else {
-            if (emotion != "gif") {
-              await TenorGifSearch(emotion).then((gif) => {
-                message.channel.send(`This one's for you! ${user}`);
-                message.reply(`${gif}`);
-              });
-            } else {
-              message.channel.sendTyping();
-              await new Promise((r) => setTimeout(r, 1000));
-              message.reply(":]");
-              message.channel.sendTyping();
-              await new Promise((r) => setTimeout(r, 1000));
-              message.reply("Wait send gifs about what? :<");
-              await new Promise((r) => setTimeout(r, 500));
-              message.channel.send(`*Aeri is dumb`);
-              await new Promise((r) => setTimeout(r, 500));
-              message.reply(
-                `Aeri can't detect any emotions in this message :<<<`
-              );
-              await new Promise((r) => setTimeout(r, 100));
-              message.channel.send(
-                `Please try again! Do you know you can ask aeri to search custom gifs by including their names inside \"quotations\" :D?`
-              );
+              } else {
+                message.channel.sendTyping();
+                await new Promise((r) => setTimeout(r, 1000));
+                message.reply(":]");
+                message.channel.sendTyping();
+                await new Promise((r) => setTimeout(r, 1000));
+                message.reply("Wait send gifs about what? :<");
+                await new Promise((r) => setTimeout(r, 500));
+                message.channel.send(`*Aeri is dumb`);
+                await new Promise((r) => setTimeout(r, 500));
+                message.reply(
+                  `Aeri can't detect any emotions in this message :<<<`
+                );
+                await new Promise((r) => setTimeout(r, 100));
+                message.channel.send(
+                  `Please try again! Do you know you can ask aeri to search custom gifs by including their names inside \"quotations\" :D?`
+                );
+              }
             }
           }
         }

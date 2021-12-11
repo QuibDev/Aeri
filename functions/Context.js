@@ -11,7 +11,10 @@ function createContext() {
     nowPlaying: null,
     playerStatus: null,
     playlistPage: 0,
-    player: null,
+    player: createAudioPlayer({
+      noSubscriber: NoSubscriberBehavior.Pause,
+    }),
+    globalPlaylistTracker: 0,
   };
 }
 
@@ -48,10 +51,6 @@ function setContext(message) {
   context.user = message.author;
   context.message = message;
 
-  context.player = createAudioPlayer({
-    noSubscriber: NoSubscriberBehavior.Pause,
-  });
-
   messageContent = message.content; // clean the message before analysing
 
   try {
@@ -74,7 +73,10 @@ function setContext(message) {
   return context;
 }
 
-function setPlaylist(message) {}
+function updatePlayer(guildId, player) {
+  guildData.set(guildId, player);
+  return;
+}
 
 function getGuildData(guildId) {
   //console.log(
@@ -91,4 +93,5 @@ function getGuildData(guildId) {
 module.exports = {
   setGuildData,
   getGuildData,
+  updatePlayer,
 };

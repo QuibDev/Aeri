@@ -5,26 +5,6 @@ const colors = require("../../data/colors.json");
 const { AudioPlayerStatus } = require("@discordjs/voice");
 const metaGetter = require("./metaGetter");
 const { getGuildData } = require("./../Context");
-var globalPlaylistTracker = 0;
-
-var context = null;
-var player = null;
-
-function initMusicCommandContext(guildId) {
-  const key = guildId;
-  context = getGuildData(key);
-
-  player = context.player;
-
-  console.log(
-    `\nPlayer Object for guildid ${guildId} is \n ${JSON.stringify(
-      player,
-      null,
-      4
-    )}`
-  );
-}
-
 const {
   joinVoiceChannel,
   createAudioPlayer,
@@ -33,37 +13,64 @@ const {
   StreamType,
 } = require("@discordjs/voice");
 
+var context = null;
+
+function initMusicCommandContext(guildId) {
+  const key = guildId;
+  context = getGuildData(key);
+
+  // console.log(
+  //   `\nPlayer Object for guildid ${guildId} is \n ${JSON.stringify(
+  //     context.player,
+  //     null,
+  //     4
+  //   )}`
+  // );
+  console.log(
+    `\nPlayer Object state for guildid ${guildId} is \n ${context.player._state.status}`
+  );
+}
+
 try {
+  console.log("\n\nTrying context player\n\n");
   context.player.on(AudioPlayerStatus.Idle, () => {
     context.nowPlaying = null;
+    console.log("\n\nDetected player is idle\n\n");
 
     if (context.playlist.length) {
-      console.log(`\nSong ${context.playlist[globalPlaylistTracker]} ended.\n`);
+      console.log(
+        `\nSong ${context.playlist[context.globalPlaylistTracker]} ended.\n`
+      );
 
       // this part should only happen if the song object has the .loop value set to false
-      if (context.playlist[globalPlaylistTracker].loop) {
+      if (context.playlist[context.globalPlaylistTracker].loop) {
         console.log(
-          `\nLooping song: ${context.playlist[globalPlaylistTracker]}.\n`
+          `\nLooping song: ${
+            context.playlist[context.globalPlaylistTracker]
+          }.\n`
         );
         console.log(`\nNew context.playlist: ${context.playlist}.\n`);
       } else {
-        globalPlaylistTracker += 1;
+        context.globalPlaylistTracker += 1;
         console.log(`\nNew context.playlist: ${context.playlist}.\n`);
-        context.titleSearched = context.playlist[globalPlaylistTracker];
+        context.titleSearched = context.playlist[context.globalPlaylistTracker];
         console.log(
           `\n\nNew TitleSearched on 49 : ${context.titleSearched}.\n`
         );
       }
       playResource();
-      console.log(`\nNow playing ${context.playlist[globalPlaylistTracker]}\n`);
+      console.log(
+        `\nNow playing ${context.playlist[context.globalPlaylistTracker]}\n`
+      );
     }
   });
 
   context.player.on(AudioPlayerStatus.Playing, () => {
-    context.nowPlaying = context.playlist[globalPlaylistTracker];
+    console.log("\n\nDetected player is playing\n\n");
+    context.nowPlaying = context.playlist[context.globalPlaylistTracker];
 
-    if (context.playlist[globalPlaylistTracker]) {
-      videoFinder(context.playlist[globalPlaylistTracker].title).then(
+    if (context.playlist[context.globalPlaylistTracker]) {
+      videoFinder(context.playlist[context.globalPlaylistTracker].title).then(
         (song) => {
           try {
             context.message.reply({
@@ -136,9 +143,9 @@ try {
     }
   });
 } catch {
-  {
-    console.log("\n\nError Ocurred when detecting player\n\n");
-  }
+  console.log(
+    "\n\ncheckingPlayerStatus: Error Ocurred when detecting context\n\n"
+  );
 }
 
 const videoFinder = async (query) => {
@@ -156,10 +163,10 @@ const videoFinder = async (query) => {
 };
 
 function loopCommand() {
-  context.playlist[globalPlaylistTracker].loop = true;
+  context.playlist[context.globalPlaylistTracker].loop = true;
   console.log(
     "\n\n SONG IS LOOPING: ",
-    context.playlist[globalPlaylistTracker]
+    context.playlist[context.globalPlaylistTracker]
   );
 
   playCommand();
@@ -168,11 +175,13 @@ function loopCommand() {
 function prevCommand() {
   if (context.playlist.length >= 1) {
     console.log(
-      `\nSong ${context.playlist[globalPlaylistTracker]} is skipped.\n`
+      `\nGoing back! Song ${
+        context.playlist[context.globalPlaylistTracker].title
+      } is skipped.\n`
     );
-    globalPlaylistTracker -= 1;
-    if (context.playlist[globalPlaylistTracker]) {
-      context.titleSearched = context.playlist[globalPlaylistTracker];
+    context.globalPlaylistTracker -= 1;
+    if (context.playlist[context.globalPlaylistTracker]) {
+      context.titleSearched = context.playlist[context.globalPlaylistTracker];
       console.log(`\nNow playing ${context.titleSearched}\n`);
       context.message.reply(
         `:rewind: Going Back! Now playing **${context.titleSearched.title}**`
@@ -191,11 +200,11 @@ function prevCommand() {
 function skipCommand() {
   if (context.playlist.length >= 1) {
     console.log(
-      `\nSong ${context.playlist[globalPlaylistTracker]} is skipped.\n`
+      `\nSong ${context.playlist[context.globalPlaylistTracker]} is skipped.\n`
     );
-    globalPlaylistTracker += 1;
-    if (context.playlist[globalPlaylistTracker]) {
-      context.titleSearched = context.playlist[globalPlaylistTracker];
+    context.globalPlaylistTracker += 1;
+    if (context.playlist[context.globalPlaylistTracker]) {
+      context.titleSearched = context.playlist[context.globalPlaylistTracker];
       console.log(`\nNow playing ${context.titleSearched.title}\n`);
       context.message.reply(
         `:track_next: Track skipped! Now playing **${context.titleSearched.title}**`
@@ -386,7 +395,7 @@ async function queueCommand() {
       );
 
       playlistCommand();
-      context.titleSearched = context.playlist[globalPlaylistTracker];
+      context.titleSearched = context.playlist[context.globalPlaylistTracker];
       console.log(`\n\nNew TitleSearched on 244 : ${context.titleSearched}.\n`);
     });
   return;
@@ -396,8 +405,8 @@ async function playResource() {
   try {
     console.log(
       "found video on youtube: ",
-      context.playlist[globalPlaylistTracker].title,
-      context.playlist[globalPlaylistTracker].url
+      context.playlist[context.globalPlaylistTracker].title,
+      context.playlist[context.globalPlaylistTracker].url
     );
   } catch {
     context.message.channel.sendTyping();
@@ -411,7 +420,9 @@ async function playResource() {
     return;
   }
 
-  let stream = await play.stream(context.playlist[globalPlaylistTracker].url);
+  let stream = await play.stream(
+    context.playlist[context.globalPlaylistTracker].url
+  );
   let resource = createAudioResource(stream.stream, {
     inputType: stream.type,
   });
@@ -495,10 +506,10 @@ async function playlistCommand(nextPage = false, previousPage = false) {
   }
 
   console.log(
-    `\ncontext.playlist ${context.playlist} length ${context.playlist.length} \nGlobalPlaylistTracker ${globalPlaylistTracker}`
+    `\ncontext.playlist ${context.playlist} length ${context.playlist.length} \ncontext.globalPlaylistTracker ${context.globalPlaylistTracker}`
   );
 
-  await videoFinder(context.playlist[globalPlaylistTracker].title).then(
+  await videoFinder(context.playlist[context.globalPlaylistTracker].title).then(
     (nowPlaying) => {
       let playlistDescription = `\n **:arrow_forward:** ${nowPlaying.title}\n\n **Playlist**`;
       let playlistQueLimit = context.playlist.length;
@@ -619,6 +630,7 @@ function joinVC() {
 }
 
 function pauseCommand() {
+  //updatePlayer(context.message.guildId, player.pause());
   context.player.pause();
   context.message.reply(`:pause_button: now paused`);
   context.playerStatus = "paused";
@@ -631,10 +643,14 @@ function resumeCommand() {
 
 function pauseUnpauseCommand() {
   if (context.playerStatus === "paused") {
-    console.log(`\ntrack ${context.playlist[globalPlaylistTracker]} resumed\n`);
+    console.log(
+      `\ntrack ${context.playlist[context.globalPlaylistTracker]} resumed\n`
+    );
     resumeCommand();
   } else {
-    console.log(`\ntrack ${context.playlist[globalPlaylistTracker]} paused\n`);
+    console.log(
+      `\ntrack ${context.playlist[context.globalPlaylistTracker]} paused\n`
+    );
     pauseCommand();
   }
 }
@@ -658,7 +674,7 @@ function leaveCommand() {
     context.player.stop();
     connection.disconnect(context.player);
     context.playlist = []; // empty the playlist
-    globalPlaylistTracker = 0;
+    context.globalPlaylistTracker = 0;
     context.playlistPage = 0;
     context.message.reply(`:record_button: left voice channel sucessfully`);
   } catch {

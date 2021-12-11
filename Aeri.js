@@ -2,18 +2,25 @@
 const { Client, Intents } = require("discord.js");
 const { token } = require("./config.json");
 const { musicKeywords } = require("./data/musicKeyword");
+const malScraper = require("mal-scraper");
 
 const {
-  initContext,
+  initMusicCommandContext,
   helpCommand,
   queueCommand,
   playCommand,
   playlistCommand,
   pauseCommand,
+  pauseUnpauseCommand,
   skipCommand,
   resumeCommand,
   leaveCommand,
-} = require("./functions/MusicCommands");
+  clearPlaylistCommand,
+  prevCommand,
+  loopCommand,
+} = require("./functions/MusicCommands/MusicCommands");
+
+const { setGuildData } = require("./functions/Context.js");
 
 const {
   TenorGifSearch,
@@ -21,7 +28,9 @@ const {
   getEmotion,
   searchSeries,
   recommendSeries,
+  getTmdbResults,
   getWatchList,
+  getCharacterInfo,
   initCommandContext,
 } = require("./functions/Commands");
 
@@ -56,7 +65,17 @@ const onMessage = async () => {
       .replaceAll("*", "")
       .replaceAll("#", "");
 
-    if (messageContent.split(" ").includes("aeri")) {
+    if (
+      messageContent.split(" ").includes("<@905305635745316885>") ||
+      messageContent.split(" ").includes("aeri") ||
+      messageContent.split(" ").includes("@aeri")
+    ) {
+      console.log("\nSETTING CONTEXT");
+      setGuildData(message);
+      initCommandContext(message.guildId);
+      initMusicCommandContext(message.guildId);
+      console.log("\nUPDATED CONTEXT");
+
       if (messageContent.match("(<@.*?>)")) {
         var user = messageContent.match("(<@.*?>)")[0];
 
@@ -73,89 +92,111 @@ const onMessage = async () => {
         }
       });
 
-      console.log("command: ", musicCommand);
+      // aeri movie commands
 
-      // aeri music commands
+      if (
+        messageContent.split(" ").includes("movie") ||
+        messageContent.split(" ").includes("movies")
+      ) {
+        message.channel.sendTyping();
+        await new Promise((r) => setTimeout(r, 1000));
+        message.reply(
+          `Wait, I'll look it up on The Movie Database for you :D! ${user}`
+        );
 
-      if (messageContent.split(" ").includes("watchlist")) {
         if (messageContent.match(/"(.*?)"/g)) {
-          query = messageContent
+          let queried = messageContent
+            .match(/"(.*?)"/g)
+            .toString()
+            .replaceAll('"', "");
+
+          console.log("searching queried: ", queried);
+          await getTmdbResults(queried);
+        } else {
+          message.channel.sendTyping();
+          await new Promise((r) => setTimeout(r, 1000));
+          message.reply(":]");
+          message.reply(
+            "I'm sorry I can't find this show on The Movie Database!"
+          );
+          message.channel.send(
+            `Actually, ${user} you need to include the series name under " " for me to look it up!`
+          );
+        }
+      }
+
+      // aeri anime commands
+      else if (messageContent.split(" ").includes("watchlist")) {
+        if (messageContent.match(/"(.*?)"/g)) {
+          let queried = messageContent
             .match(/"(.*?)"/g)
             .toString()
             .replaceAll('"', "");
 
           message.reply(
-            `Pulling up the watchlist of ${query} from MAL! :D! ${user}`
+            `Pulling up the watchlist of ${queried} from MAL! :D! ${user}`
           );
 
-          console.log("watchlist user: ", query);
+          console.log("watchlist user: ", queried);
 
-          await getWatchList(query).then((series) => {
+          await getWatchList(queried).then((series) => {
             message.channel.send(
               `Here are the compiled list of the top ten shows that I found! ${user}`
             );
 
-            var watchList;
-
-            for (let i = 0; i < 10; i++) {
-              if (series[i].score) {
-                watchList += `\n ${i + 1}. ${series[i].animeTitle} - *Scored ${
-                  series[i].score
-                }*`;
-              } else {
-                watchList += `\n ${i + 1}. ${series[i].animeTitle} - *Scored ${
-                  series[i].score
-                }*`;
+            if (series) {
+              var watchList = "";
+              for (let i = 0; i < 10; i++) {
+                try {
+                  if (series[i]) {
+                    watchList += `\n ${i + 1}. ${
+                      series[i].animeTitle
+                    } - *Scored ${series[i].score}*`;
+                  }
+                } catch {
+                  watchList += `\n ${i + 1}. ${series[i].animeTitle}`;
+                }
               }
+              message.reply(
+                `Here is the watchlist of ${queried} in default order! \n\n ${watchList} \n\n **PS. If you want aeri to look up one of these shows deets just hit me up with a *aeri search "showTitle"*!`
+              );
+            } else {
+              message.reply(":]");
+              message.reply("I'm sorry I can't find this user on MAL!");
+              message.channel.send(
+                `Actually, ${user} you need to include the user's name under " " for me to look it up!`
+              );
             }
-
-            message.channel.send(
-              `${watchList} \n\n**PS!** If you want me to look up the deets of one of the series for you just ask me with aeri search "series name"! :D ${user}`
-            );
           });
-        } else {
-          message.reply(":]");
-          message.reply("I'm sorry I can't find this user on MAL!");
-          message.channel.send(
-            `Actually, ${user} you need to include the user's name under " " for me to look it up!`
-          );
         }
-      } else if (messageContent.split(" ").includes("search")) {
+      } else if (
+        messageContent.split(" ").includes("character") ||
+        messageContent.split(" ").includes("characters")
+      ) {
+        console.log("\nTriggered character search");
+
+        if (messageContent.match(/"(.*?)"/g)) {
+          let queried = messageContent
+            .match(/"(.*?)"/g)
+            .toString()
+            .replaceAll('"', "");
+
+          console.log("searching queried: ", queried);
+          await getCharacterInfo(queried);
+        }
+      } else if (messageContent.split(" ").includes("anime")) {
         message.channel.sendTyping();
         await new Promise((r) => setTimeout(r, 1000));
         message.reply(`Wait, I'll look it up on MAL for you :D! ${user}`);
 
         if (messageContent.match(/"(.*?)"/g)) {
-          query = messageContent
+          let queried = messageContent
             .match(/"(.*?)"/g)
             .toString()
             .replaceAll('"', "");
 
-          console.log("searching query: ", query);
-          await searchSeries(query)
-            .then((series) => {
-              if (
-                series.payload.status.toString().toLowerCase() ===
-                "finished airing"
-              ) {
-                message.reply(
-                  `I found the ${series.type} ${series.name} on My Anime List! It's rated **${series.payload.score} / 10** and originally aired between ${series.payload.aired}`
-                );
-              } else {
-                message.reply(
-                  `I found the ${series.type} ${series.name} on My Anime List! It's rated **${series.payload.score} / 10** and is currently airing this season!`
-                );
-              }
-              message.channel.send("Here check it out!" + " " + user);
-              message.channel.send(series.url);
-            })
-            .catch((error) => {
-              message.reply(":]");
-              message.reply("I'm sorry I can't find the show on MAL!");
-              message.channel.send(
-                `Maybe try changing the spelling a bit! And remember to add them under double quotations (" ")! I can't find the show otherwise! ${user}`
-              );
-            });
+          console.log("searching queried: ", queried);
+          await searchSeries(queried);
         } else {
           message.channel.sendTyping();
           await new Promise((r) => setTimeout(r, 1000));
@@ -167,17 +208,17 @@ const onMessage = async () => {
         }
       } else if (messageContent.split(" ").includes("recommend")) {
         if (messageContent.match(/"(.*?)"/g)) {
-          query = messageContent
+          let queried = messageContent
             .match(/"(.*?)"/g)
             .toString()
             .replaceAll('"', "");
 
           message.reply(
-            `Hmmm, A series similar to ${query} huh? Wait I'll look it up on MAL! :D! ${user}`
+            `Hmmm, A series similar to ${queried} huh? Wait I'll look it up on MAL! :D! ${user}`
           );
 
-          console.log("recommendation query: ", query);
-          await recommendSeries(query)
+          console.log("recommendation queried: ", queried);
+          await recommendSeries(queried)
             .then((series) => {
               message.reply(
                 `How about checking out ${series.anime}? I read it's reviews on MAL and most people think it has the same charm!`
@@ -199,9 +240,10 @@ const onMessage = async () => {
             `Actually, ${user} you need to include the series name under " " for me to look it up!`
           );
         }
-      } else if (musicCommand) {
-        initContext(message);
+      }
 
+      // aeri music commands
+      else if (musicCommand) {
         switch (musicCommand) {
           case "play":
             console.log("\ntriggered play music\n");
@@ -233,7 +275,27 @@ const onMessage = async () => {
             skipCommand();
             break;
 
-          case "playlist":
+          case "previous":
+            console.log("\ntriggered previous music\n");
+            prevCommand();
+            break;
+
+          case "prev":
+            console.log("\ntriggered previous music\n");
+            prevCommand();
+            break;
+
+          case "loop":
+            console.log("\ntriggered loop music\n");
+            loopCommand();
+            break;
+
+          case "clear":
+            console.log("\ntriggered clearplaylist music\n");
+            clearPlaylistCommand();
+            break;
+
+          case "quelist":
             console.log("\ntriggered playlist music\n");
             playlistCommand();
             break;
@@ -266,6 +328,10 @@ const onMessage = async () => {
             Data.malHelpResponse(message);
             break;
 
+          case "moviehelp":
+            Data.movieHelpResponse(message);
+            break;
+
           case "music":
             Data.musicHelpResponse(message);
             break;
@@ -279,18 +345,18 @@ const onMessage = async () => {
 
           await message.reply(`${response} ${user}`);
 
-          if (messageContent.split(" ").includes("gif")) {
+          if (true /*messageContent.split(" ").includes("gif")*/) {
             // searching for custom gifs
 
             if (messageContent.match(/"(.*?)"/g)) {
-              query = messageContent
+              let queried = messageContent
                 .match(/"(.*?)"/g)
                 .toString()
                 .replaceAll('"', "");
 
-              if (query) {
-                console.log("searching custom gif query: ", query);
-                await TenorGifSearch(query, (custom = true))
+              if (queried) {
+                console.log("searching custom gif queried: ", queried);
+                await TenorGifSearch(queried, (custom = true))
                   .then((gif) => {
                     message.channel.sendTyping();
                     message.channel.send(`This one's for you! ${user}`);
@@ -319,8 +385,10 @@ const onMessage = async () => {
             else {
               if (emotion != "gif") {
                 await TenorGifSearch(emotion).then((gif) => {
-                  message.channel.send(`This one's for you! ${user}`);
-                  message.reply(`${gif}`);
+                  if (gif) {
+                    message.channel.send(`This one's for you! ${user}`);
+                    message.reply(`${gif}`);
+                  }
                 });
               } else {
                 message.channel.sendTyping();
@@ -347,6 +415,59 @@ const onMessage = async () => {
     }
   });
 };
+
+client.on("interactionCreate", (interaction) => {
+  if (!interaction.isButton()) return;
+
+  if (interaction.customId === "charactersInfoMAL") {
+    // get the show url from the previous message.
+    // pass it in
+
+    async function getCharacterInteraction() {
+      try {
+        console.log("searching characters from: ", context.query);
+        await malScraper.getInfoFromName(context.query).then((show) => {
+          getCharacterInfo(show);
+        });
+      } catch {
+        (e) => console.log(e);
+      }
+    }
+
+    getCharacterInteraction();
+  } else if (interaction.customId === "similarShowsMAL") {
+    async function getRecommendationInteraction() {
+      try {
+        console.log("recommending series related to: ", context.query);
+        await recommendSeries(context.query).then((show) => {
+          //console.log(show);
+          searchSeries(show.anime);
+        });
+        //searchSeries(recommendSeries(context.query).name);
+      } catch {
+        (e) => {
+          console.log(e);
+        };
+      }
+    }
+    getRecommendationInteraction();
+  }
+
+  // music command buttons
+  else if (interaction.customId === "previousTrackButton") {
+    prevCommand();
+  } else if (interaction.customId === "pauseTrackButton") {
+    pauseUnpauseCommand();
+  } else if (interaction.customId === "nextTrackButton") {
+    skipCommand();
+  } else if (interaction.customId === "loopTrackButton") {
+    loopCommand();
+  } else if (interaction.customId === "nextPlaylistPageButton") {
+    playlistCommand((nextPage = true));
+  } else if (interaction.customId === "nextPlaylistPageButton") {
+    playlistCommand((previousPage = true));
+  }
+});
 
 onMessage();
 

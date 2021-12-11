@@ -4,8 +4,12 @@ var musicKeywords = [
   "musichelp",
   "pause",
   "resume",
+  "previous",
+  "prev",
+  "loop",
   "skip",
-  "playlist",
+  "quelist",
+  "clear",
   "leave",
 ];
 

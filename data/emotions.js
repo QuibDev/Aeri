@@ -28,6 +28,10 @@ function helpCommandResponse(message) {
             value: "\u200B",
           },
           {
+            name: `:popcorn:  Aeri MovieHelp - To check out the list of my Movie Search commands! `,
+            value: "\u200B",
+          },
+          {
             name: `:musical_note:  Aeri Music! - To check out the list of my music commands! `,
             value: "\u200B",
           },
@@ -105,7 +109,10 @@ function specialHelpResponse(message) {
           {
             name: `:blush: Headpat - Use this when you feel down and need a headpat from Aeri\n`,
             value: `> keywords: \"headpat\" \"head\" \"pat\" `,
-            inline: true,
+          },
+          {
+            name: `:smiling_face_with_3_hearts: Love - Use this when you want to say aeri you love her!\n`,
+            value: `> keywords: \"love\" \"luv\" \"like\" \"aishteru\" `,
           },
           {
             name: `:clap: Cheer - Use this when you want Aeri to cheer you up`,
@@ -182,6 +189,36 @@ function malHelpResponse(message) {
   });
 }
 
+function movieHelpResponse(message) {
+  message.reply({
+    channel_id: `${message.channelId}`,
+    content: `${message.author}`,
+    tts: false,
+    embeds: [
+      {
+        type: "rich",
+        title: ` ~ Movie Search Commands ~  `,
+        description: `Here are the list of all of Aeri's myAnimeList commands!`,
+        color: colors.embededColor,
+        fields: [
+          {
+            name: `:popcorn:  Looking up Movies `,
+            value: `\n> :speech_balloon: *\"Hey Aeri, movie \"Catch Me if you can\"?\" \n> :speech_balloon: \"Aeri look up the deets of the movie \"catch me if you can\" for @user :D.\" \n> :speech_balloon: *\"Aeri pull up \"catch me if you can\" movie details for everyone!\" `,
+            inline: true,
+          },
+          {
+            name: `**NOTE**`,
+            value: `\n> - You can use any sentence as long as you include the key words \"aeri\",\"moview\" \n> - Movie name is not case sensitive.\n> - Movie name must be enclosed inside \" \" for it to work. `,
+          },
+        ],
+        footer: {
+          text: `Made with love by @OptimizedSoda`,
+        },
+      },
+    ],
+  });
+}
+
 function musicHelpResponse(message) {
   message.reply({
     channel_id: `${message.channelId}`,
@@ -236,6 +273,10 @@ var specialHelpCommand = ["special", "specials"];
 
 var malHelpCommand = ["myanimelist", "mal"];
 
+var movieHelpCommand = ["moviehelp", "tmdb"];
+
+var moralSupportKeyWordList = ["moral", "morally", "support"];
+
 var musicHelpCommand = ["music", "musichelp"];
 
 var helloKeyWordList = [
@@ -260,6 +301,16 @@ var thanksKeyWordList = [
   "nicejob",
   "arigato",
   "danke",
+];
+
+var loveKeyWordList = [
+  "love",
+  "loves",
+  "luv",
+  "luvs",
+  "aishteru",
+  "like",
+  "likes",
 ];
 
 var happyKeyWordList = ["happy", "joyful", "merry"];
@@ -350,10 +401,13 @@ var keyWordPriorityList = [
   "special",
   "myanimelist",
   "commandlist",
+  "moviehelp",
   "music",
   "gif",
   "birthday",
   "help",
+  "love",
+  "moral",
   "sorry",
   "thanks",
   "headpat",
@@ -376,6 +430,9 @@ var keyWordList = [].concat(
   specialHelpCommand,
   musicHelpCommand,
   malHelpCommand,
+  movieHelpCommand,
+  loveKeyWordList,
+  moralSupportKeyWordList,
   helloKeyWordList,
   thanksKeyWordList,
   happyKeyWordList,
@@ -393,15 +450,18 @@ var keyWordList = [].concat(
 );
 
 var emotionMapDict = {
+  love: loveKeyWordList,
   music: musicHelpCommand,
   gif: gifCommandList,
   greeting: greetingHelpCommand,
   special: specialHelpCommand,
   myanimelist: malHelpCommand,
+  moviehelp: movieHelpCommand,
   hello: helloKeyWordList,
   bye: byeKeyWordList,
   thanks: thanksKeyWordList,
   happy: happyKeyWordList,
+  moral: moralSupportKeyWordList,
   sad: sadKeyWordList,
   happyMood: moodKeyWordList,
   congratulation: congratulateKeyWordList,
@@ -417,6 +477,14 @@ var emotionMapDict = {
 //### EMOTION RESPONSE DICT #####
 
 var emotionResponseDict = {
+  love: [
+    "I will always love you.",
+    "I am here for you…always",
+    "I’d do anything to make you smile",
+    "My love for you is unconditional and eternal.",
+    "Awww thank you :3 Aeri loves you too!",
+    "Awww thank you :3 Aeri likes you too!",
+  ],
   gif: [
     "Hold up! I'm searching one right now!! :D!!",
     "Aye Aye senpai! :heart:",
@@ -426,8 +494,22 @@ var emotionResponseDict = {
   greeting: null,
   special: null,
   myanimelist: null,
+  moviehelp: null,
   help: null,
-  headpat: ["There there.", "Coming up!", "Awww there you go!"],
+
+  moral: [
+    "You will die alone and you will be happy.",
+    "If you think your day sucked - tomorrow is yet to come.",
+    "This world is full of people way more attractive, deserving and talented then you.",
+    "The world doesn't exist to please you. You're not it's center.",
+  ],
+
+  headpat: [
+    "There there.",
+    "Coming up!",
+    "Awww there you go!",
+    "Everything will be fine :>!",
+  ],
   hello: [
     "Hello back! :D!",
     "I was just thinking about you! :heart:",
@@ -484,5 +566,6 @@ module.exports = {
   greetingHelpResponse,
   specialHelpResponse,
   malHelpResponse,
+  movieHelpResponse,
   musicHelpResponse,
 };

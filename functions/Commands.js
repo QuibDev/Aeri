@@ -2,34 +2,139 @@
 
 const Data = require("../data/emotions");
 const malScraper = require("mal-scraper");
+const colors = require("../data/colors.json");
+const { getGuildData } = require("./Context");
 
-var context = {
-  connection: null,
-  playlist: [],
-  user: null,
-  message: null,
-  messageContent: null,
-};
+var context = null;
 
-async function initCommandContext(message) {
-  context.user = message.author;
-  context.message = message;
-
-  context.messageContent = message.content // clean the message before analysing
-    .toLowerCase()
-    .replaceAll("!", "")
-    .replaceAll("?", "")
-    .replaceAll("*", "")
-    .replaceAll("#", "");
-
-  return;
+function initCommandContext(guildId) {
+  context = getGuildData(guildId);
 }
 
-function searchSeries(series) {
+async function getCharacterInfo(query) {
+  try {
+    for (let i = 0; i < query.characters.length; i++) {
+      context.message.reply({
+        channel_id: `${context.user.channelID}`,
+        content: `${context.user}`,
+        tts: false,
+        embeds: [
+          {
+            type: "rich",
+            title: `${query.characters[i].name}`,
+            description: `**Role**: ${query.characters[i].role}\n**Seiyuu**: ${query.characters[i].seiyuu.name}`,
+            color: colors.embededColor,
+            thumbnail: {
+              url: `${query.characters[i].picture}`,
+              height: 0,
+              width: 0,
+            },
+            url: `${query.characters[i].link}`,
+          },
+        ],
+      });
+    }
+  } catch {
+    context.message.channel.sendTyping();
+    await new Promise((r) => setTimeout(r, 1000));
+    context.message.reply(
+      `Aye, Aye! Aeri will look them up on MAL for you :D! ${context.user}`
+    );
+    await new Promise((r) => setTimeout(r, 1000));
+
+    await malScraper.getInfoFromName(query).then((show) => {
+      for (let i = 0; i < show.characters.length; i++) {
+        context.message.reply({
+          channel_id: `${context.user.channelID}`,
+          content: `${context.user}`,
+          tts: false,
+          embeds: [
+            {
+              type: "rich",
+              title: `${show.characters[i].name}`,
+              description: `**Role**: ${show.characters[i].role}\n**Seiyuu**: ${show.characters[i].seiyuu.name}`,
+              color: colors.embededColor,
+              thumbnail: {
+                url: `${show.characters[i].picture}`,
+                height: 0,
+                width: 0,
+              },
+              url: `${show.characters[i].link}`,
+            },
+          ],
+        });
+      }
+    });
+  }
+}
+
+async function getSeriesInfo(data) {
+  await malScraper.getInfoFromURL(data.url).then((show) => {
+    context.message.reply({
+      channel_id: `${context.user.channelID}`,
+      content: `${context.user}`,
+      tts: false,
+      components: [
+        {
+          type: 1,
+          components: [
+            {
+              style: 1,
+              label: `Characters`,
+              custom_id: `charactersInfoMAL`,
+              disabled: false,
+              type: 2,
+            },
+            {
+              style: 1,
+              label: `Similar `,
+              custom_id: `similarShowsMAL`,
+              disabled: false,
+              type: 2,
+            },
+            {
+              style: 5,
+              label: `More Info`,
+              url: `${data.url}`,
+              disabled: false,
+              type: 2,
+            },
+          ],
+        },
+      ],
+      embeds: [
+        {
+          type: "rich",
+          title: `${show.title}`,
+          description: `\n ${
+            show.synopsis.split("\n")[0]
+          } \n\n:hourglass_flowing_sand: **Status**           :dividers: **Type**           :calendar_spiral: **Aired** \n${
+            show.status
+          }           ${data.type}           ${
+            show.premiered
+          } \n\n :stopwatch: **duration**           :star: **Average Rating**                           :trophy: **Ranked** \n${
+            show.duration
+          }                     ${show.score}/10                         top ${
+            show.ranked
+          }`,
+          color: colors.embededColor,
+          thumbnail: {
+            url: `${show.picture}`,
+            height: 350,
+            width: 350,
+          },
+        },
+      ],
+    });
+  });
+}
+
+async function searchSeries(series) {
   return malScraper
     .getResultsFromSearch(series)
     .then((data) => {
-      return data[0];
+      //console.log(data[0]);
+      getSeriesInfo(data[0]);
     })
     .catch((err) => console.log(err));
 }
@@ -46,25 +151,63 @@ function getSeriesLength(series, id) {
     .catch((err) => console.log(err));
 }
 
-function getTmdbResults(series) {
+async function getTmdbResults(series) {
   const { TMDB_API_KEY } = require("../config.json");
   const mdb = require("moviedb")(TMDB_API_KEY);
 
   mdb.searchMovie({ query: series }, (err, res) => {
-    console.log(res.results[0]);
+    show = null;
+    try {
+      show = res.results[0];
+    } catch {
+      context.message.reply(":]");
+      context.message.reply(
+        "I'm sorry I can't find this show on The Movie Database!"
+      );
+      context.message.channel.send(
+        `Hey, ${context.user} Maybe try changing the name of the movie a bit?`
+      );
+      context.message.channel.send(
+        `If I can't find it again, then it's possible poor folks don't have it indexed ;0;`
+      );
+    }
+    if (show) {
+      console.log(res.results[0]);
+      show = res.results[0];
+      context.message.reply({
+        channel_id: `${context.user.channelID}`,
+        content: `${context.user}`,
+        tts: false,
+        embeds: [
+          {
+            type: "rich",
+            title: `${show.title}`,
+            description: `\n\n:calendar_spiral: **Released** ${
+              show.release_date
+            }     \n\n ${show.overview.split("\n")[0]} \n\n:star: **Rating** ${
+              show.vote_average
+            }/10 | :speaker:  **Language** ${show.original_language}`,
+            color: colors.embededColor,
+            image: {
+              url: `${"https://image.tmdb.org/t/p/w500/" + show.backdrop_path}`,
+              height: 0,
+              width: 0,
+            },
+            thumbnail: {
+              url: `${"https://image.tmdb.org/t/p/w500/" + show.poster_path}`,
+              height: 350,
+              width: 350,
+            },
+          },
+        ],
+      });
+    }
   });
 }
 
-function getMovieDetails(Id) {
-  const { TMDB_API_KEY } = require("../config.json");
-  const mdb = require("moviedb")(TMDB_API_KEY);
+//console.log(`series: ${getTmdbResults("danish girl")}`);
 
-  mdb.movieInfo({ id: Id }, (err, res) => {
-    console.log(res);
-  });
-}
-
-function recommendSeries(series) {
+async function recommendSeries(series) {
   return malScraper
     .getRecommendationsList(series)
     .then((data) => {
@@ -199,6 +342,8 @@ module.exports = {
   getEmotion,
   searchSeries,
   recommendSeries,
+  getTmdbResults,
   getWatchList,
+  getCharacterInfo,
   initCommandContext,
 };
